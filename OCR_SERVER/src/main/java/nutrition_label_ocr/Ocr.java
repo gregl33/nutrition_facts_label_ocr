@@ -440,7 +440,6 @@ public class Ocr {
 		
 	 	for (Rect rect : elems_) {
 	 		
-//	 		if(contains(final_list_2,rect.height)) {
 	 		boolean matched = false;
 	 	 	for (Rect cluster : cluster_) {
 
@@ -465,7 +464,6 @@ public class Ocr {
 	 	 			cluster_.add(rect);
 	 	 		}
 	 	 	}
-//	 	}
 	 	}
 	 	
 	 	return cluster_;
@@ -485,26 +483,10 @@ public class Ocr {
 		long startTime = System.nanoTime();   
 
 		
-		
-//		System.load("/path/to/opencv/opencv_build/lib/libopencv_java320.dylib");
-
-		
-		
-
-//		fileName_ = fileName;
-//		hashMap compMap = hm;
-
-		
-		
-//		String inputFile = path+fileName;
-
-//		String fileNameWithOutExt = FilenameUtils.removeExtension(fileName);	
-
-//	       InputStream is = OCR.class.getResourceAsStream(fileName);
 	        
 			Imgcodecs.imread(imgSrcPath);
 		
-	         Mat src = Imgcodecs.imread(imgSrcPath);//Imgcodecs.imread(args[0]);
+	         Mat src = Imgcodecs.imread(imgSrcPath);
 
 	         Imgproc.pyrDown(src, src);
 
@@ -515,9 +497,13 @@ public class Ocr {
 	    Imgproc.cvtColor(src, gray, Imgproc.COLOR_BGR2GRAY);
 
 	    
+
+	    
 	    Mat blur = new Mat();
 	    		
-	    Imgproc.blur(gray, blur,new Size(5, 5)); //With kernel size depending upon image size
+	    
+	    
+	    Imgproc.blur(gray, blur,new Size(5, 5)); 
 	    double mean_blur = Core.mean(blur).val[0];
 	    System.out.println("mean_blur: " +mean_blur);
 	    String light_dark = "";
@@ -544,6 +530,8 @@ public class Ocr {
 	    // Show binary image
 	    Imgproc.threshold(gray, bw_2, 0.0, 255.0, Imgproc.THRESH_BINARY | Imgproc.THRESH_OTSU);
 	    showWaitDestroy("binary" , bw_2);
+	   
+	    
 
 	    
 	    if(darkBackround) {
@@ -552,7 +540,12 @@ public class Ocr {
 		}
 	    
 	    
+
 	 
+		  
+
+		  
+		  
 	    Mat horizontal = bw_2.clone();
 	    Mat vertical = bw_2.clone();
 	    // Specify size on horizontal axis
@@ -583,215 +576,116 @@ public class Ocr {
 	    Core.subtract(bw_2, horizontal, testing);
 
 	    Core.subtract(testing, vertical, testing);
-
-//		 Imgcodecs.imwrite(fileToSaveImgs + fileNameWithOutExt + "__testing.jpg",testing);
-
 	    
 
-	        int erosion_size = 2;
+		 double rotationAngle = detectRotationAngle(testing);
+			if(rotationAngle < 50 && rotationAngle > -50) {
+		  Mat straightImage_ = rotateImage(src, rotationAngle);
+		  Mat straightImageConnected_ = rotateImage(testing, rotationAngle);
+
+		  showWaitDestroy("straightImage" , straightImage_);
+		  showWaitDestroy("straightImageMorphologyEx_2" , straightImageConnected_);
+			
+		  
+		  
+		  src = new Mat(straightImage_,new Rect(0,0,src.width(),src.height()));
+		  bw_2 = new Mat(straightImageConnected_,new Rect(0,0,src.width(),src.height()));
+
+			}
+		  
+		  
+		  
+		  
+		  
+		     horizontal = bw_2.clone();
+		     vertical = bw_2.clone();
+		    // Specify size on horizontal axis
+		    
+		     horizontal_size = horizontal.cols() / 15;
+		    // Create structure element for extracting horizontal lines through morphology operations
+		     horizontalStructure = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(horizontal_size,1));
+		    // Apply morphology operations
+		    Imgproc.erode(horizontal, horizontal, horizontalStructure);
+		    Imgproc.dilate(horizontal, horizontal, horizontalStructure);
+		    // Show extracted horizontal lines
+		    showWaitDestroy("horizontal_2" , horizontal);
+		    
+		    // Specify size on vertical axis
+		     vertical_size = vertical.rows() / 5;
+		    // Create structure element for extracting vertical lines through morphology operations
+		     verticalStructure = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(1,vertical_size));
+		    // Apply morphology operations
+		    Imgproc.erode(vertical, vertical, verticalStructure);
+		    Imgproc.dilate(vertical, vertical, verticalStructure);
+		    // Show extracted vertical lines
+		    showWaitDestroy("vertical_2", vertical);
+
+		    		
+		     testing = new Mat();
+
+		    
+		    Core.subtract(bw_2, horizontal, testing);
+
+		    Core.subtract(testing, vertical, testing);
+		    
+		    
+		    
+		    
+		    
+		    
+		  
+		  
+		  
+		  
+		  
+	    int erosion_size = 3;
 		
-	    // Mat large = Imgcodecs.imread(inputFile),
-		Mat	 rgb = new Mat(),
-			 small =  new Mat(),
+		Mat	small =  new Mat(),
 			 kernel =  new Mat(),
-			 grad = new Mat(),
 			 bw = new Mat(),
 			 connected = new Mat(),
 			 hierarchy  =  new Mat();//,
-//			 rgb2 = new Mat();
 	     List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
 		 List<Rect> elems = new ArrayList<Rect>();
-//		 Set<Rect> setUnsorted = new HashSet<Rect>();
 		 List<Rect> dupl= new ArrayList<Rect>();
 
 
 		 
 		 
 		 
-//		 Mat processed = preProcessForAngleDetection(testing);
 
 		 
 		 bw = testing;
-//		 small = straightImage;
-//	     Imgproc.pyrDown(large, rgb);
-//	     Imgproc.cvtColor(large,small, Imgproc.COLOR_BGR2GRAY);
-//	     Imgproc.cvtColor(straightImage,small, Imgproc.COLOR_BGR2GRAY);
 
-//		 small = lines_removed;
-//	     displayImage(small,"img_1","grey",new Size(small.size().width,small.size().height),false);
-//		 Imgcodecs.imwrite(fileToSaveImgs + fileNameWithOutExt + "__grey.jpg",small);
-
-//		  double rotationAngle = detectRotationAngle(testing);
-//			
-//		  Mat straightImage = rotateImage(src, rotationAngle);
-//		  showWaitDestroy("straightImage" , straightImage);
-	//  
-//		 Imgproc.cvtColor(straightImage,small, Imgproc.COLOR_BGR2GRAY);
-//	     Mat test = small.clone();
-//	     Mat test2 = small.clone();
-//	     Mat test3 = small.clone();
-	//
-//	     Mat OCR_IMG = small.clone();
-
-//	     
-//	     String ocr = doOcr(small);
-//		 System.out.println("ocr: " + ocr);
-
-	     
-	     
-//	     
-//	     
-//	     
-//	     Mat test_lines = small.clone();
-	//
-//	     
-//	     Mat cannyEdges = new Mat();
-//	     Mat lines = new Mat();
-	//    
-	//
-//	     
-//	     
-	     
-	     
-	//
-//		 Imgproc.cvtColor(small,test,Imgproc.COLOR_GRAY2BGR);			 
-//		 Imgproc.cvtColor(small,test2,Imgproc.COLOR_GRAY2BGR);			 
-//		 Imgproc.cvtColor(small,test3,Imgproc.COLOR_GRAY2BGR);			 
-
-	     
-	     
-//	     Size kernelSize_1 = new Size(3,3);
-//	      kernel =  Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, kernelSize_1);
-//	     
-//	      
-////	      small = testing;
-//	      Imgproc.morphologyEx(small, grad, Imgproc.MORPH_GRADIENT, kernel);
-	//
-//	      displayImage(grad,"img_2","morphologyEx",new Size(grad.size().width,grad.size().height),false);
-//	 	 Imgcodecs.imwrite(fileToSaveImgs + fileNameWithOutExt + "__morphologyEx.jpg",grad);
-	//
-//	      Imgproc.threshold(grad, bw, 0.0, 255.0, Imgproc.THRESH_BINARY | Imgproc.THRESH_OTSU);
-//	      displayImage(bw,"img_3","threshold",new Size(bw.size().width,bw.size().height),false);
-//	 	 Imgcodecs.imwrite(fileToSaveImgs + fileNameWithOutExt + "__threshold.jpg",bw);
-	// 
-//	      
-//	 	 bw = testing;
-	      
+		 
 			Mat erosion_element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(erosion_size , erosion_size));
 	        Imgproc.erode(bw, bw, erosion_element);
 			 showWaitDestroy("erode_bw" , bw);
 
 	        
-	        Size kernelSize_2 = new Size(9,1);
+//	        Size kernelSize_2 = new Size(9,1);
+	        Size kernelSize_2 = new Size(12,9);
 
 	      kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, kernelSize_2);
 
 	      Imgproc.morphologyEx(bw, connected, Imgproc.MORPH_CLOSE, kernel);
-//	      displayImage(connected,"img_4","morphologyEx_2",new Size(connected.size().width,connected.size().height),false);
-//	  	 Imgcodecs.imwrite(fileToSaveImgs + fileNameWithOutExt + "__morphologyEx_2.jpg",connected);
+
 		 showWaitDestroy("morphologyEx_2" , connected);
 
 	  	 
-	  	 
-	  	 
-	  	 
-//	  	 Mat lines = new Mat();
-//	  	 
-//	     Imgproc.HoughLinesP(connected, lines, 1, Math.PI / 180, 100);
-	//
-//	     double angle = 0;
-//	     
-//	     Mat debugImage = connected.clone();
-//	     Imgproc.cvtColor(debugImage, debugImage, Imgproc.COLOR_GRAY2BGR);
-//	     
-//	     for (int x = 0; x < lines.cols(); x++) {
-//	         double[] vec = lines.get(0, x);
-//	         double x1 = vec[0];
-//	         double y1 = vec[1];
-//	         double x2 = vec[2];
-//	         double y2 = vec[3];
-	//
-//	         Point start = new Point(x1, y1);
-//	         Point end = new Point(x2, y2);
-	//
-//	         //Draw line on the "debug" image for visualization
-//	         Imgproc.line(debugImage, start, end, new Scalar(255, 255, 0), 5);
-	//
-//	         //Calculate the angle we need
-////	         angle = 
-//	        		 
-//	        double deltaX = end.x - start.x;
-//	         double deltaY = end.y - start.y;
-//	         angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
-//	         
-////	         calculateAngleFromPoints(start, end);
-//	         
-//	         System.out.println("angle: " + angle);
-//	     }
-//	     
-//	 	 Imgcodecs.imwrite(fileToSaveImgs + fileNameWithOutExt + "__lines.jpg",debugImage);
-	//
-//	 	 
-//	 	 
-//	 	 
-//	 	 
-//	 	 
-//	     //Calculate image center
-//	     Point imgCenter = new Point(connected.cols() / 2, connected.rows() / 2);
-//	     //Get the rotation matrix
-//	     Mat rotMtx = Imgproc.getRotationMatrix2D(imgCenter, angle, 1.0);
-//	     //Calculate the bounding box for the new image after the rotation (without this it would be cropped)
-//	     Rect bbox = new RotatedRect(imgCenter, connected.size(), angle).boundingRect();
-	//
-//	     //Rotate the image
-//	     Mat rotatedImage = connected.clone();
-//	     Imgproc.warpAffine(connected, rotatedImage, rotMtx, bbox.size());
-//	     
-//	 	 Imgcodecs.imwrite(fileToSaveImgs + fileNameWithOutExt + "__rotatedImage.jpg",rotatedImage);
-	//
-//	     
-//	     
-	     
-	  	
-//	      Imgproc.findContours(connected, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
-			 List<Integer> all_heights = new ArrayList<Integer>();
+		 Imgproc.cvtColor(src,small, Imgproc.COLOR_BGR2GRAY);
+		 Imgproc.cvtColor(small,src, Imgproc.COLOR_GRAY2BGR);
 
+		 Mat test = src.clone();
+		 Mat test2 = src.clone();
+		 Mat test3 = src.clone();
+		 Mat test5 = src.clone();
 
-			 List<Double> all_areas = new ArrayList<Double>();
-
-
+		 Mat OCR_IMG = src.clone();
+		 
+		 
 			 
-			 
-			 
-			 //https://gaborvecsei.wordpress.com/2016/08/29/straighten-image-with-opencv/
-			 
-			 double rotationAngle = detectRotationAngle(connected);
-				
-			  Mat straightImage = rotateImage(src, rotationAngle);
-			  Mat straightImageConnected = rotateImage(connected, rotationAngle);
-
-			  showWaitDestroy("straightImage" , straightImage);
-		//
-			 Imgproc.cvtColor(straightImage,small, Imgproc.COLOR_BGR2GRAY);
-			 Imgproc.cvtColor(small,straightImage, Imgproc.COLOR_GRAY2BGR);
-
-			 Mat test = straightImage.clone();
-			 Mat test2 = straightImage.clone();
-			 Mat test3 = straightImage.clone();
-		
-			 Mat OCR_IMG = straightImage.clone();
-
-		  
-//			 String ocr = doOcr(straightImage);
-//			 System.out.println("ocr: " + ocr);
-			 
-//			 Imgproc.cvtColor(small,test,Imgproc.COLOR_GRAY2BGR);			 
-//			 Imgproc.cvtColor(small,test2,Imgproc.COLOR_GRAY2BGR);			 
-//			 Imgproc.cvtColor(small,test3,Imgproc.COLOR_GRAY2BGR);	
-			 
-			 
-			 
-		      Imgproc.findContours(straightImageConnected, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
+		  Imgproc.findContours(connected, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
 
 			 
 			 
@@ -799,28 +693,23 @@ public class Ocr {
 	 	 for(int idx = 0; idx < contours.size();idx++){
 	 	 	  Rect rect = Imgproc.boundingRect(contours.get(idx));
 	 	 	  
-	 	 	  if(rect.height > 20  && rect.height < 100) {
+	 	 	  Imgproc.rectangle(test5, rect.br(),new Point( rect.br().x-rect.width ,rect.br().y-rect.height), new Scalar(0,0,255),2);
+
+		 	 	
+	 	 	  if(rect.height > 20  && rect.height < 100 && rect.width >= 20) {
 	 	 		  elems.add(rect);
-	 	 	   	 	  
-	 	 	  
-	 	 	  if(!contains(all_heights,rect.height)) {
-	 	  	 	all_heights.add(rect.height);
 
-	 	 	  }
-	 	 	  
-	 	 	  if(!contains(all_areas,rect.area())) {
-	 	 		all_areas.add(rect.area());
-	 	 	  }
 
-		 	 	Imgproc.rectangle(test, rect.br(),new Point( rect.br().x-rect.width ,rect.br().y-rect.height), new Scalar(0,0,255));
+
+		 	 	Imgproc.rectangle(test, rect.br(),new Point( rect.br().x-rect.width ,rect.br().y-rect.height), new Scalar(0,0,255),2);
 	 	 	  }
 		 	 
 	 	 }
 	 	 
 	 	 
 	 	 
-//			displayImage(test,"img_5","all ("+contours.size()+")",new Size(test.size().width,test.size().height),false);
-//		    Imgcodecs.imwrite(fileToSaveImgs + fileNameWithOutExt + "__allBoxes.jpg",test);
+		  		showWaitDestroy("allBoxes_" , test5);
+
 			  showWaitDestroy("allBoxes_filtered" , test);
 
 		    
@@ -853,56 +742,6 @@ public class Ocr {
 
 	 	 
 		 
-	     Collections.sort(all_areas);
-	     double sum_all_areas = 0;
-	     for (int i = 0; i < all_areas.size(); i++) {
-	    	 sum_all_areas += all_areas.get(i);
-	     }
-	     double mean_all_areas = sum_all_areas / all_areas.size();  
-	     
-	     System.out.println("mean_all_areas: " +mean_all_areas);
-	     System.out.println("all_areas: " +all_areas.toString());
-
-	     
-	     
-
-	     //***Remove Outliers Using Normal Distribution and S.D.
-//	     Collections.sort(all_heights);
-//	     double sum = 0;
-//	     for (int i = 0; i < all_heights.size(); i++) {
-//	         sum += all_heights.get(i);
-//	     }
-//	     double mean = sum / all_heights.size();         
-//	     double standardDeviation = 0.0;     
-//	     for(int num: all_heights) {
-//	         standardDeviation += Math.pow(num - mean, 2);
-//	     }
-	//
-//	     double sd = Math.sqrt(standardDeviation/all_heights.size());
-	//
-//	    				 List<Integer> final_list = new ArrayList<Integer>();
-//	    				 List<Integer> final_list_2 = new ArrayList<Integer>();
-	//
-//	    			 	 for(int fl = 0; fl < all_heights.size();fl++){
-//	    			 		if (all_heights.get(fl) > mean - 2 * sd) {
-//	    			 			final_list.add(all_heights.get(fl));
-//	    			 		}
-//	    			 	 }
-//	    			 	 
-//	    			 	 for(int fl = 0; fl < final_list.size();fl++){
-//	     			 		if (final_list.get(fl) < mean + 2 * sd) {
-//	     			 			final_list_2.add(final_list.get(fl));
-//	     			 		}
-//	     			 	 }
-	//
-//	     
-//	    			     System.out.println("sd: " + sd);
-//	    			     System.out.println("mean: " + mean);
-	//
-//	    System.out.println("all_heights: " +all_heights.size() + " - " +all_heights.toString());
-	//
-//		 System.out.println("final_list_2: " +final_list_2.size() + " - " + final_list_2.toString());
-
 
 		 
 		 List<Rect> merged_temp = mergeObj(elems);
@@ -935,39 +774,17 @@ public class Ocr {
 					   return result;
 				}
 			});
-//		    
-		 
-//			//sort by y
-//		 Collections.sort(merged,new Comparator<Rect>() {
-	// 	
-//			public int compare(Rect o1, Rect o2) {
-	//
-//				   int result = Double.compare(o1.y,o2.y);
-//			    if ( result == 0 ) {
-//			 	   result = Double.compare(o1.x,o2.x);
-//			 	   
-//			    }
-//				   return result;
-//			}
-//		});
-	 
+
+			 
+			 
 
 
 			 for(int idx = 0; idx < merged.size();idx++){
 		 		 
 		 		 Imgproc.rectangle(test2, merged.get(idx).br(),new Point( merged.get(idx).br().x-merged.get(idx).width ,merged.get(idx).br().y-merged.get(idx).height), new Scalar(0,0,255));
 
-		 		 
-//	  	 	 	  System.out.println(idx + ". rect - x: " + merged.get(idx).x +", y: " +merged.get(idx).y + ", h: " + merged.get(idx).height +", w: " + merged.get(idx).width + ", A: " + merged.get(idx).area());
-//	  	 	 	  System.out.println("*****************************************");
-
-		 		  
 			 }
-			 
-		 	 
-//				displayImage(test2,"img_6","filtered ("+merged.size()+")",new Size(test2.size().width,test2.size().height),false);
-//			    Imgcodecs.imwrite(fileToSaveImgs + fileNameWithOutExt + "__allBoxes_filtered.jpg",test2);
-				  showWaitDestroy("mergedBoxes" , test2);
+			 showWaitDestroy("mergedBoxes" , test2);
 
 		 	 
 		    
@@ -983,28 +800,15 @@ public class Ocr {
 
 						 for (Iterator<Rect> rect_2_it = merged.iterator(); rect_2_it.hasNext();) {
 							 Rect rect_2 = rect_2_it.next();
-							 
-//								 if((rect_2.y <= rect.y && (rect_2.y+rect_2.height) >= rect.y)) {
-//									 t.add(rect_2);
-//									 rect_2_it.remove();
-//									 maxCounter = merged.size();
-//								 }
-							 	int rect_top = rect.y;
-							 	int rect_bottom = rect.y + rect.height;			
+	
 							 	double middle_rect = rect.y + (rect.height/2);
-								 
-							 	
+								
 							 	if((rect_2.y + rect_2.height) >= middle_rect && rect_2.y <= middle_rect) {
 							 		 t.add(rect_2);
 									 rect_2_it.remove();
 									 maxCounter = merged.size();
 							 	}
 							 	
-//								 if((rect_2.y <= rect.y && (rect_2.y+rect_2.height) >= rect.y)) {
-//									 t.add(rect_2);
-//									 rect_2_it.remove();
-//									 maxCounter = merged.size();
-//								 }
 						 }
 						 counter++;
 						 if(t.size() >= 2) {
@@ -1029,35 +833,11 @@ public class Ocr {
 		  	 		 System.out.println("*****************************************");
 		  	 	 	 System.out.println(idx+": " + temp.get(idx).toString());
 		  	 	 	 
-		  	 	 	Random rand = new Random();
-					 int r = rand.nextInt(255);
-					 int g = rand.nextInt(255);
-					 int b = rand.nextInt(255);
-					 Scalar colour = new Scalar(r,g,b);
 					 
 					 List<Integer> gaps = new ArrayList<Integer>();
 
-					 
-
-					 
-					 
-//					 Collections.sort(temp.get(idx),new Comparator<Rect>() {
-//					    	
-//							public int compare(Rect o1, Rect o2) {
-	//
-//								   int result = Double.compare(o1.x,o2.x);
-////							    if ( result == 0 ) {
-////							 	   result = Double.compare(o1.y,o2.y);
-////							 	   
-////							    }
-//								   return result;
-//							}
-//						});
-					 
-					 
 					 for(int idx2 = 0; idx2 < temp.get(idx).size();idx2++){
 						 Rect rrr = temp.get(idx).get(idx2);
-//						 Imgproc.rectangle(test3, rrr.br(),new Point( rrr.br().x-rrr.width ,rrr.br().y-rrr.height), colour);
 
 						 if(idx2 + 1 < temp.get(idx).size()) {
 							 int x_width = rrr.x + rrr.width;
@@ -1068,30 +848,21 @@ public class Ocr {
 
 						 }
 					 }
-//					 Imgcodecs.imwrite(fileToSaveImgs + fileNameWithOutExt + "_"+idx+"__allBoxes_filtered_test3.jpg",test3);
 
 					 
 		  	 	 	 System.out.println("gaps: " + gaps.toString());
 
 					 
-		  	 	 	 
-//		  	 	 	int[] gaps_arr = gaps.stream().mapToInt(i->i).toArray();
-		  	 	 	//https://www.geeksforgeeks.org/find-a-peak-in-a-given-array/
-		  	 	 	//https://www.youtube.com/watch?v=a7D77DdhlFc
-//		  	 	 	 System.out.println("peak index: " + findPeak(gaps_arr,gaps_arr.length));
 
 					 if(gaps.size() >= 2) {
 					 List<Integer> peaks = peakFinder(gaps);
 
 		  	 	 	 System.out.println("peaks: " + peaks.toString());
 		  	 	 	 
-//					 List<Rect> new_merged_temp = new ArrayList<Rect>();
-
 					 
 					 int maxx = temp.get(idx).size();
 					 int counter_ = 0;
 					 while (counter_ < maxx) {
-//							 Rect rect = merged.get(counter);
 							 Rect rrr = temp.get(idx).get(counter_);
 
 							 for (Iterator<Rect> rect_2_it = temp.get(idx).listIterator(counter_); rect_2_it.hasNext();) {
@@ -1103,14 +874,11 @@ public class Ocr {
 									 System.out.println("diff: " + diff);
 									 if(!peaks.contains(diff)) {
 										 
-										 int x  = rrr.x;//Math.min( rrr.x,   rrr_2.x   );
+										 int x  = rrr.x;
 										 int y  = Math.min( rrr.y,  rrr_2.y  );
 										 int height = Math.abs(Math.max((rrr_2.height+rrr_2.y), (rrr.height+rrr.y))- y);
 										 int width = rrr.width + diff + rrr_2.width;
 												 
-												 
-//												 Math.abs(Math.max((rrr_2.width + rrr_2.x), (rrr.width+rrr.x))- x);
-
 										 rrr.x  = x;
 										 rrr.y  = y;
 										 rrr.height = height;
@@ -1129,11 +897,6 @@ public class Ocr {
 					 
 		  	 	 	 System.out.println(idx+": " + temp.get(idx).toString());
 
-		 
-		  	 	 	 
-		  	 	 	 
-		  	 	 	 
-
 					
 				 }
 				 
@@ -1144,20 +907,7 @@ public class Ocr {
 				 
 				 }
 				 
-				 
-				 System.out.println("*****************************************");
-		  	 	 System.out.println("*****************************************");
-				 String ocr_erode_bw = doOcr(bw);
-				 System.out.println("ocr_erode_bw: " + ocr_erode_bw);
-				 
-				 
-				 
-				 
-		  	 	 System.out.println("*****************************************");
-		  	 	 System.out.println("*****************************************");
-				 String ocr = doOcr(straightImage);
-				 System.out.println("ocr: " + ocr);
-				 
+			
 				 temp_2 = temp;
 				 
 				 
@@ -1169,10 +919,8 @@ public class Ocr {
 					 int g = rand.nextInt(255);
 					 int b = rand.nextInt(255);
 					 Scalar colour = new Scalar(r,g,b);
-//			  	 	 System.out.println("*****************************************");
 	//
 			  	 	 System.out.println("");
-//			  	 	 System.out.println(idx + ". ");
 
 					 
 			  	 	 String oneLine = "";
@@ -1181,7 +929,7 @@ public class Ocr {
 				  	 	 System.out.print(" ");
 
 						 Rect rrr = temp_2.get(idx).get(idx2);
-						 Imgproc.rectangle(test3, rrr.br(),new Point( rrr.br().x-rrr.width ,rrr.br().y-rrr.height), colour);
+						 Imgproc.rectangle(test3, rrr.br(),new Point( rrr.br().x-rrr.width ,rrr.br().y-rrr.height), colour,2);
 
 						 int height_10 = (int) Math.round(rrr.height*0.2);
 						 int width_10 = (int) Math.round(rrr.width*0.2);
@@ -1191,24 +939,20 @@ public class Ocr {
 						 rrr.y =  Math.abs(rrr.y - (height_10/2));
 						 
 						 if((rrr.x + rrr.width) > OCR_IMG.width()) {
-//							 System.out.println(rrr + " - W: " + OCR_IMG.width());	 
 							 rrr.width = (OCR_IMG.width() - rrr.x);
 						 }
 						 
 						 if((rrr.y + rrr.height) > OCR_IMG.height()) {
-//							 System.out.println(rrr + " - H: " + OCR_IMG.height());	 
 							 rrr.height = (OCR_IMG.height() - rrr.y);
 						 }
 
-//						 Imgproc.rectangle(test3, rrr.br(),new Point( rrr.br().x-rrr.width ,rrr.br().y-rrr.height), colour);
-//						 Imgcodecs.imwrite(fileToSaveImgs + fileNameWithOutExt + "_"+idx+"_"+idx2+"__allBoxes_filtered_test3.jpg",test3);
-//						 
-						 
-	//
-								Mat img = new Mat(OCR_IMG,rrr);
+						Mat img = new Mat(OCR_IMG,rrr);
+								showWaitDestroy("croppedIMg_"+idx+"_"+idx2 , img);
+
 								String res = doOcr(img);
-//					 			System.out.print(res);
-//						 		oneLine
+								System.out.print("^^^ croppedIMg_"+idx+"_"+idx2+": ");
+								
+					 			System.out.print(res);
 					 			oneLine += res + " ";
 
 					 }
@@ -1217,7 +961,6 @@ public class Ocr {
 			 		  
 				 }	 
 			    
-//				    Imgcodecs.imwrite(fileToSaveImgs + fileNameWithOutExt + "__allBoxes_filtered_test3.jpg",test3);
 					  showWaitDestroy("__allBoxes_filtered_test3" , test3);
 
 			    

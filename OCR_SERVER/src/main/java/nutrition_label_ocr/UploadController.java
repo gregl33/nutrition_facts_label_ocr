@@ -41,7 +41,6 @@ public class UploadController {
     	String imgname = file.getOriginalFilename();
 		String fileNameWithOutExt = FilenameUtils.removeExtension(imgname);
 		
-
 		
 		Date now = new Date(); 
 		SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yy HH_mm_ss");
@@ -55,28 +54,13 @@ public class UploadController {
     	    }
     	    
     	    
-    	    
             byte[] bytes = file.getBytes();
             Path path = Paths.get(newFilePath + imgname);
             Files.write(path, bytes);
         
             Ocr newOcr = new Ocr(imgname,newFilePath);
-            
 
-//            
-//            File file_ = new File(WebPath + imgname); 
-//            
-//            if(file_.delete()) 
-//            { 
-//                System.out.println("File deleted successfully"); 
-//            } 
-//            else
-//            { 
-//                System.out.println("Failed to delete the file"); 
-//            } 
-
-
-        return newOcr; //"redirect:/uploadStatus";
+        return newOcr; 
     }
 
 
